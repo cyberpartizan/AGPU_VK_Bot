@@ -5,3 +5,4 @@ idna==2.8
 requests==2.22.0
 soupsieve==2.0.1
 urllib3==1.25.9
+vk_api==20.1.1
