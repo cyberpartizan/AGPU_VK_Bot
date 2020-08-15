@@ -1,0 +1,1 @@
+worker: python VK_Bot_AGPU_Schedule.py
