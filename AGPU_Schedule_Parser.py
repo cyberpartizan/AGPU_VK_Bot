@@ -3,8 +3,7 @@ from bs4 import BeautifulSoup
 import datetime
 import time
 import threading
-group='2988&SearchString=Z%D0%90%D0%98-%D0%92%D0%98-3-1&Type=Group'
-URL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={group}&WeekId='
+global URL
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
 
@@ -99,13 +98,19 @@ def get_lesson_by_date(date):  # Расписание по дате
     return day
 
 
-def today(days=0):
+def today(days=0,groupLink=""):
+    group = groupLink[0]
+    global URL
+    URL=f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={group}&WeekId='
     date = datetime.datetime.now().date() + datetime.timedelta(days=days)
     res = String_day(get_lesson_by_date(date))
     return res
 
 
-def bydate(date):
+def bydate(date,groupLink):
+    group = groupLink[0]
+    global URL
+    URL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={group}&WeekId='
     day = get_lesson_by_date(date)
     res = String_day(day)
     return res

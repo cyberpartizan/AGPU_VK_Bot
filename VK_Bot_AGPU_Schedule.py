@@ -29,18 +29,6 @@ def main():
         vk = vk_session.get_api()
         try:
             # Отправка текстового сообщения
-            def String_day(daydict):
-                day = daydict['day'] + '\n'
-                lessons = ''
-                for lesson in daydict['dayLessons']:
-                    lessons = lessons + lesson + '\n'
-                return day + lessons
-
-            def String_week(weekdict):
-                WeekLessons = ''
-                for daydict in weekdict:
-                    WeekLessons = WeekLessons + String_day(daydict) + '\n'
-                return WeekLessons
 
             def send_msg(ms_g):
                 vk.messages.send(peer_id=event.object.peer_id, random_id=0, message=ms_g)
@@ -49,20 +37,22 @@ def main():
                 if event.type == VkBotEventType.MESSAGE_NEW:  # Проверка на приход сообщения
                     # Логика ответов
                     # Текстовые ответы -----------------------------------------------------------------------------
+                    group_Link=get_Link_from_db("ВМ-Мат-3-1")
                     if event.obj.text == "/сегодня" or event.obj.text == "/с":
-                        send_msg(parser.today())
+                        send_msg(parser.today(groupLink=group_Link))
                     elif event.obj.text == "/завтра" or event.obj.text == "/з":
-                        send_msg(parser.today(1))
+                        send_msg(parser.today(1,groupLink=group_Link))
                     elif event.obj.text == "/послезавтра" or event.obj.text == "/пз":
-                        send_msg(parser.today(2))
+                        send_msg(parser.today(2,groupLink=group_Link))
                     elif event.obj.text == "/вчера" or event.obj.text == "/в":
-                        send_msg(parser.today(-1))
+                        send_msg(parser.today(-1,groupLink=group_Link))
                     elif event.obj.text == "/позавчера" or event.obj.text == "/пв":
-                        send_msg(parser.today(-2))
+                        send_msg(parser.today(-2,groupLink=group_Link))
                     elif "/дата" in event.obj.text or "/д" in event.obj.text:
                         split = event.obj.text.split()
                         date = split[1]
-                        send_msg(parser.bydate(date))
+                        answer=parser.bydate(date,groupLink=group_Link)
+                        send_msg(answer)
 
 
         except (requests.exceptions.ConnectionError, urllib3.exceptions.MaxRetryError,
