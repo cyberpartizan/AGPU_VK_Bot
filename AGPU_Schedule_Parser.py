@@ -3,8 +3,8 @@ from bs4 import BeautifulSoup
 import datetime
 import time
 import threading
-
-URL = 'https://it-institut.ru/Raspisanie/SearchedRaspisanie?SearchId=880&SearchString=%D0%92%D0%9C-%D0%98%D0%92%D0%A2-2-1&Type=Group&OwnerId=118&WeekId='
+group='2988&SearchString=Z%D0%90%D0%98-%D0%92%D0%98-3-1&Type=Group'
+URL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={group}&WeekId='
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
 
@@ -68,11 +68,11 @@ def split_date_to_numbers(date):  # Разделение даты по дням 
         elif "," in date:
             temp = list(map(int, date.split(',')))
         else:
-            print("Неправельный формат даты дата")
+            print("Неправельный формат даты")
     return temp
 
 
-def get_lesson_by_date(date):  # Расписание по дате пример формата 9.3.2020
+def get_lesson_by_date(date):  # Расписание по дате
     hoursandwith = []
     daysandlessons = []
     datenumbers = split_date_to_numbers(date)

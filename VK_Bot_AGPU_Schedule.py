@@ -1,4 +1,5 @@
 import socket
+import sqlite3
 import requests
 import urllib3
 import vk_api
@@ -13,6 +14,12 @@ print("Бот работает...")
 group_id = '197937466'  # Указываем id сообщества, изменять только здесь!
 oshibka = 0  # обнуление счетчика ошибок
 
+connection = sqlite3.connect('Group.db')
+cursor = connection.cursor()
+
+def get_Link_from_db(Name):
+    cursor.execute("SELECT groupLink FROM Groups WHERE groupName=:NameKey",{'NameKey':Name})
+    return cursor.fetchone()
 
 def main():
     global oshibka  # Счетчик ошибок
