@@ -124,7 +124,6 @@ def check_today_schedule_change():  # Проверка если расписан
                 time.sleep(900)
             else:
                 currentday = today()
-
         time.sleep(51000)
 
 
