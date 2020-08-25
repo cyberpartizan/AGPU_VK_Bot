@@ -14,8 +14,6 @@ group_id = '197937466'  # Указываем id сообщества, измен
 oshibka = 0  # обнуление счетчика ошибок
 
 
-
-
 def main():
     global oshibka  # Счетчик ошибок
     try:
@@ -33,23 +31,25 @@ def main():
                     # Логика ответов
                     # Текстовые ответы -----------------------------------------------------------------------------
                     if db.chat_id_is_in_DB(event.obj.peer_id):
-                        group_link=db.get_group_link_by_peer_id(event.obj.peer_id)
+                        group_link = db.get_group_link_by_peer_id(event.obj.peer_id)
                         if event.obj.text == "/сегодня" or event.obj.text == "/с":
                             send_msg(parser.today(groupLink=group_link))
                         elif event.obj.text == "/завтра" or event.obj.text == "/з":
-                            send_msg(parser.today(1, groupLink=group_link))
+                            send_msg(parser.today(days=1, groupLink=group_link))
                         elif event.obj.text == "/послезавтра" or event.obj.text == "/пз":
-                            send_msg(parser.today(2, groupLink=group_link))
+                            send_msg(parser.today(days=2, groupLink=group_link))
                         elif event.obj.text == "/вчера" or event.obj.text == "/в":
-                            send_msg(parser.today(-1, groupLink=group_link))
+                            send_msg(parser.today(days=-1, groupLink=group_link))
                         elif event.obj.text == "/позавчера" or event.obj.text == "/пв":
-                            send_msg(parser.today(-2, groupLink=group_link))
+                            send_msg(parser.today(days=-2, groupLink=group_link))
                         elif "/дата" in event.obj.text or "/д" in event.obj.text:
                             split = event.obj.text.split()
                             date = split[1]
                             answer = parser.bydate(date, groupLink=group_link)
                             send_msg(answer)
-                    elif "/група" in event.obj.text or "/г" in event.obj.text:
+                    else:
+                        send_msg("Не выбранна группа для беседы. Воспользуйтесь командой /группа или /г")
+                    if "/группа" in event.obj.text or "/г" in event.obj.text:
                         split = event.obj.text.split()
                         group_name = split[1].upper()
                         if db.group_name_is_in_DB(group_name):
@@ -57,8 +57,8 @@ def main():
                             send_msg("Ваш чат теперь привязан к группе " + group_name)
                         else:
                             send_msg("Неправельно введено название группы")
-                    else:
-                        send_msg("Не выбранна группа для беседы. Воспользуйтесь командой /группа или /г")
+
+
 
 
 
@@ -82,3 +82,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

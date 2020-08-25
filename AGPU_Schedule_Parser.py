@@ -98,19 +98,17 @@ def get_lesson_by_date(date):  # Расписание по дате
     return day
 
 
-def today(days=0,groupLink=""):
-    group = groupLink[0]
+def today(groupLink,days=0):
     global URL
-    URL=f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={group}&WeekId='
+    URL=f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={groupLink}&WeekId='
     date = datetime.datetime.now().date() + datetime.timedelta(days=days)
     res = String_day(get_lesson_by_date(date))
     return res
 
 
 def bydate(date,groupLink):
-    group = groupLink[0]
     global URL
-    URL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={group}&WeekId='
+    URL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={groupLink}&WeekId='
     day = get_lesson_by_date(date)
     res = String_day(day)
     return res

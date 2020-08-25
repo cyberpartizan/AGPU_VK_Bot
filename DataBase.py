@@ -5,7 +5,7 @@ cursor = connection.cursor()
 
 def get_link_from_GroupsT(name):
     cursor.execute("SELECT group_link FROM Groups WHERE group_name=:nameKey", {'nameKey': name})
-    return cursor.fetchone()
+    return cursor.fetchone()[0]
 
 def group_name_is_in_DB(name):
     cursor.execute("SELECT EXISTS(SELECT group_link FROM Groups WHERE group_name=?)", (name,))
@@ -19,7 +19,8 @@ def chat_id_is_in_DB(chat_id):
 
 def get_group_link_by_peer_id(peer_id):
     cursor.execute("SELECT group_link From Chats WHERE chat_id=:peer_idKey",{"peer_idKey":peer_id})
-    return cursor.fetchone()
+    result=cursor.fetchone()[0]
+    return result
 
 def insert_to_ChatsT(peer_id, group_name):
     group_link=get_link_from_GroupsT(group_name)[0]
@@ -28,7 +29,7 @@ def insert_to_ChatsT(peer_id, group_name):
     connection.commit()
 
 def update_to_ChatsT(peer_id, group_name):
-    group_link = get_link_from_GroupsT(group_name)[0]
+    group_link = get_link_from_GroupsT(group_name)
     cursor.execute("UPDATE Chats SET group_link = ? WHERE chat_id =?",(group_link,peer_id))
     connection.commit()
 
