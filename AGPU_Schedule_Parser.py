@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import datetime
 import time
 import threading
+
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
 
@@ -31,7 +32,8 @@ def get_day_lessons(hoursandwith, daysandlessons, weekday):  # Вычислен�
         else:
             if daysandlessons[weekday]['lessons'][i]['lesson'] != '':
                 lessons.append(
-                    (hoursandwith[j]['hour'] + '\n' + daysandlessons[weekday]['lessons'][i]['lesson']).replace('\n\n','').replace('\n(ВМ-ИВТ-2-1)', ''))
+                    (hoursandwith[j]['hour'] + '\n' + daysandlessons[weekday]['lessons'][i]['lesson']).replace('\n\n','').replace('\n(ВМ-ИВТ-2-1)', '')
+                                )
         i += 1
         j += 1
     return {'day': daysandlessons[weekday]['day'], 'dayLessons': lessons}
@@ -70,13 +72,13 @@ def split_date_to_numbers(date):  # Разделение даты по дням 
     return temp
 
 
-def get_lesson_by_date(date,groupLink):  # Расписание по дате
+def get_lesson_by_date(date, grouplink):  # Расписание по дате
     hoursandwith = []
     daysandlessons = []
     datenumbers = split_date_to_numbers(date)
     weekCount_weekDay = get_week_count_and_weekday(datenumbers[0], datenumbers[1], datenumbers[2])
-    WeekCount=str(weekCount_weekDay['weekcount'])
-    finalURL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={groupLink}&WeekId={WeekCount}'
+    WeekNumber = str(weekCount_weekDay['weekcount'])
+    finalURL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={grouplink}&WeekId={WeekNumber}'
     html = get_html(finalURL, headers)
     content = get_content(html)
     tr = content.findAll('tr')  # Находим все строки таблицы (включая заголовки)
@@ -97,24 +99,24 @@ def get_lesson_by_date(date,groupLink):  # Расписание по дате
     return day
 
 
-def today(groupLink,days=0):
+def today(groupLink, days=0):
     global URL
-    URL=f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={groupLink}&WeekId='
+    URL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={groupLink}&WeekId='
     date = datetime.datetime.now().date() + datetime.timedelta(days=days)
-    res = String_day(get_lesson_by_date(date=date,groupLink=groupLink))
+    res = String_day(get_lesson_by_date(date=date, grouplink=groupLink))
     return res
 
 
-def bydate(date,groupLink):
+def bydate(date, groupLink):
     global URL
-    day = get_lesson_by_date(date=date,groupLink=groupLink)
+    day = get_lesson_by_date(date=date, grouplink=groupLink)
     res = String_day(day)
     return res
 
 
-def check_today_schedule_change():  # Проверка если расписание изминилось на сегодня
+def check_today_schedule_change(group_link):  # Проверка если расписание изминилось на сегодня
     while True:
-        currentday = today()
+        currentday = today(groupLink=group_link)
         while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
             if currentday == today():
                 time.sleep(900)
@@ -122,9 +124,8 @@ def check_today_schedule_change():  # Проверка если расписан
                 currentday = today()
         time.sleep(51000)
 
-
-def start_scan():
-    thread = threading.Thread(target=check_today_schedule_change, daemon=True)
+def start_scan(*args):
+    thread = threading.Thread(target=check_today_schedule_change, daemon=True,args=args)
     thread.start()
 
 
@@ -141,6 +142,14 @@ def String_week(weekdict):
     for daydict in weekdict:
         WeekLessons = WeekLessons + String_day(daydict) + '\n'
     return WeekLessons
+
+def check_schedule_exist(group_link, days=0):  # Проверяет существоавания расписания
+    schedule_text = today(days=days, groupLink=group_link)
+    if schedule_text.split("\n")[3] == "":
+        return "Системе не удалось найти учебную неделю в расписании."
+    else:
+        return schedule_text
+
 
 # day20_4_2020=today(-100)
 # print(String_day(day20_4_2020))
