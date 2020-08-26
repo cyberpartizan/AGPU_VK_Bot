@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import datetime
 import time
 import threading
-global URL
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
 
@@ -71,16 +70,16 @@ def split_date_to_numbers(date):  # Разделение даты по дням 
     return temp
 
 
-def get_lesson_by_date(date):  # Расписание по дате
+def get_lesson_by_date(date,groupLink):  # Расписание по дате
     hoursandwith = []
     daysandlessons = []
     datenumbers = split_date_to_numbers(date)
     weekCount_weekDay = get_week_count_and_weekday(datenumbers[0], datenumbers[1], datenumbers[2])
-    finalURL = URL + str(weekCount_weekDay['weekcount'])
+    WeekCount=str(weekCount_weekDay['weekcount'])
+    finalURL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={groupLink}&WeekId={WeekCount}'
     html = get_html(finalURL, headers)
     content = get_content(html)
     tr = content.findAll('tr')  # Находим все строки таблицы (включая заголовки)
-
     for th in tr[0].findAll('th')[1:]:  # Заголовки и их ширина
         hoursandwith.append({'hour': th.find('span').get_text(),
                              'hourWidth': th['colspan']
@@ -102,14 +101,13 @@ def today(groupLink,days=0):
     global URL
     URL=f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={groupLink}&WeekId='
     date = datetime.datetime.now().date() + datetime.timedelta(days=days)
-    res = String_day(get_lesson_by_date(date))
+    res = String_day(get_lesson_by_date(date=date,groupLink=groupLink))
     return res
 
 
 def bydate(date,groupLink):
     global URL
-    URL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={groupLink}&WeekId='
-    day = get_lesson_by_date(date)
+    day = get_lesson_by_date(date=date,groupLink=groupLink)
     res = String_day(day)
     return res
 
