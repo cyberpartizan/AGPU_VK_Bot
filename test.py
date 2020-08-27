@@ -1,28 +1,44 @@
-import datetime
-import threading
-import time
-import sqlite3
+import asyncio
+import random
 import DataBase as db
 
+async def main(loop):
+    tasks = []
+    for i in range(3):
+        task = asyncio.create_task(func(i))
+        tasks.append(task)
+    await asyncio.gather(*tasks)
 
 
 
-def check_today_schedule_change(peer_id):  # Проверка если расписание изминилось на сегодня
-    connection = sqlite3.connect('AGPU_Schedule_Bot_DB.db')
-    cursor = connection.cursor()
+async def func():
+    while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
+        chats = db.get_send_updates()
+        for chat in chats:
+            currentday = chat[3]
+            if currentday != today(groupLink=chat[1]):
+                currentday = today(groupLink=chat[1])
+                send_msg_by_peer_id("Расписание изменилась \n \n"+currentday, chat[0])
+                db.set_last_lessons_by_peer_id(chat[0])
+        await asyncio.time.sleep(1000)
+    await asyncio.time.sleep(51000)
 
-    def get_send_updates_status_one(peed_id):
-        cursor.execute("SELECT send_updates FROM Chats WHERE chat_id=?", (peed_id,))
-        result = bool(list(cursor.fetchone())[0])
-        return result
+
+
+
+
+
+
+async def check_today_schedule_change(peer_id, group_link):  # Проверка если расписание изминилось на сегодня
+    chats=db.get_send_updates()
 
     while get_send_updates_status_one(peer_id):
-        print("!!!!!")
-        time.sleep(1)
+        currentday = today(groupLink=group_link)
+        while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
+            if currentday == today(groupLink=group_link):
+                await asyncio.time.sleep(900)
+            else:
+                currentday = today(groupLink=group_link)
+                send_msg_by_peer_id(currentday, peer_id)
+        await asyncio.time.sleep(51000)
 
-def start_scan(*args):
-    thread = threading.Thread(target=check_today_schedule_change, args=args)
-    thread.start()
-    time.sleep(5)
-database=db
-thread=start_scan(68051119,database)

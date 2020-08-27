@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import socket
 import threading
@@ -25,41 +26,29 @@ def main():
         vk_session = vk_api.VkApi(token=APIKEYSS)  # Авторизация под именем сообщества
         longpoll = VkBotLongPoll(vk_session, group_id)
         vk = vk_session.get_api()
+
+        def send_msg(ms_g):
+            vk.messages.send(peer_id=event.object.peer_id, random_id=0, message=ms_g)
+
+        def send_msg_by_peer_id(ms_g, peer_id):
+            vk.messages.send(peer_id=peer_id, random_id=0, message=ms_g)
+
+        def check_today_lessons_update():
+            while True:
+                while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 16):
+                    chats = db.get_send_updates()
+                    for chat in chats:
+                        currentday = chat[3]
+                        if currentday != parser.today(groupLink=chat[1]):
+                            currentday = parser.today(groupLink=chat[1])
+                            send_msg_by_peer_id("Расписание изменилась \n \n" + currentday, chat[0])
+                            db.set_last_lessons_by_peer_id(chat[0],currentday)
+                    time.sleep(1000)
+                time.sleep(51000)
         try:
             # Отправка текстового сообщения
-
-            def send_msg(ms_g):
-                vk.messages.send(peer_id=event.object.peer_id, random_id=0, message=ms_g)
-
-            def send_msg_by_peer_id(ms_g,peer_id):
-                vk.messages.send(peer_id=peer_id, random_id=0, message=ms_g)
-
-            def check_today_schedule_change(peer_id,group_link):  # Проверка если расписание изминилось на сегодня
-                connection = sqlite3.connect('AGPU_Schedule_Bot_DB.db')
-                cursor = connection.cursor()
-
-                def get_send_updates_status_one(peed_id):
-                    cursor.execute("SELECT send_updates FROM Chats WHERE chat_id=?", (peed_id,))
-                    result = bool(list(cursor.fetchone())[0])
-                    return result
-
-                while get_send_updates_status_one(peer_id):
-                    currentday = parser.today(groupLink=group_link)
-                    while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
-                        if currentday == parser.today(groupLink=group_link):
-                            time.sleep(2)
-                        else:
-                            currentday = parser.today(groupLink=group_link)
-                            send_msg_by_peer_id(currentday,peer_id)
-                    time.sleep(51000)
-
-            def start_scan(*args):
-                thread = threading.Thread(target=check_today_schedule_change, daemon=True, args=args)
-                thread.start()
-
-            for chat in db.get_send_updates_status_many():
-                if chat[2]:
-                    start_scan(chat[0],chat[1])
+            #asyncio.run(check_today_lessons_update())
+            threading.Thread(target=check_today_lessons_update()).start()
             for event in longpoll.listen():  # Постоянное прослушивание сообщений
 
                 if event.type == VkBotEventType.MESSAGE_NEW:  # Проверка на приход сообщения

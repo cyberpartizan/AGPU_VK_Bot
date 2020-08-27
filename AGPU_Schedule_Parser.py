@@ -114,20 +114,25 @@ def bydate(date, groupLink):
     return res
 
 
-def check_today_schedule_change(group_link):  # Проверка если расписание изминилось на сегодня
-    while True:
-        currentday = today(groupLink=group_link)
-        while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
-            if currentday == today():
-                time.sleep(900)
-            else:
-                currentday = today()
-        time.sleep(51000)
+#def check_today_schedule_change(group_link):  # Проверка если расписание изминилось на сегодня
+#    while True:
+#        currentday = today(groupLink=group_link)
+#        while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
+#            if currentday == today():
+#                time.sleep(900)
+#            else:
+#                currentday = today()
+#        time.sleep(51000)
 
-def start_scan(*args):
-    thread = threading.Thread(target=check_today_schedule_change, daemon=True,args=args)
-    thread.start()
-
+async def check_today_schedule_change(peer_id, group_link):  # Проверка если расписание изминилось на сегодня
+    #currentday = today(groupLink=group_link)
+    while (get_send_updates_status_one(peer_id) and datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
+        if currentday == today(groupLink=group_link):
+            await asyncio.time.sleep(900)
+        else:
+            currentday = today(groupLink=group_link)
+            send_msg_by_peer_id(currentday, peer_id)
+    await asyncio.time.sleep(51000)
 
 def String_day(daydict):
     day = daydict['day'] + '\n\n'
