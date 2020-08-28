@@ -12,7 +12,7 @@ from DataBase import Database
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 #6d3e7800807862b42f09c5b0adeb32c71d8646aef4e70ec1db414dba89d328d2e48e49486f2fdae46333d
 # Импорт API ключа(токена)
-API_KEY = os.environ("API_KEY")
+API_KEY = os.environ.get("API_KEY")
 print("Бот работает...")
 group_id = '197937466'  # Указываем id сообщества, изменять только здесь!
 oshibka = 0  # обнуление счетчика ошибок
