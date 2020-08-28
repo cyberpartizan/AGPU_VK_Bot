@@ -1,23 +1,22 @@
-import asyncio
 import datetime
 import socket
 import threading
 import time
-import sqlite3
+
 import AGPU_Schedule_Parser as parser
-import DataBase as db
 import requests
 import urllib3
 import vk_api
+from DataBase import Database
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 
-# Импорт API ключа(токена) из отдельного файла
+# Импорт API ключа(токена)
 APIKEYSS = "6d3e7800807862b42f09c5b0adeb32c71d8646aef4e70ec1db414dba89d328d2e48e49486f2fdae46333d"
 print("Бот работает...")
 group_id = '197937466'  # Указываем id сообщества, изменять только здесь!
-oshibka = 0  #обнуление счетчика ошибок
-
-
+oshibka = 0  # обнуление счетчика ошибок
+threads = []
+db = Database('AGPU_Schedule_Bot_DB.db')
 
 
 def main():
@@ -33,24 +32,26 @@ def main():
         def send_msg_by_peer_id(ms_g, peer_id):
             vk.messages.send(peer_id=peer_id, random_id=0, message=ms_g)
 
-        def check_today_lessons_update():
+        def check_today_lessons_update():  # Проверка на обновления расписания за день
+            db_inthread = Database('AGPU_Schedule_Bot_DB.db')
             while True:
-                while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 16):
-                    chats = db.get_send_updates()
+                while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 24):
+                    chats = db_inthread.get_send_updates()
                     for chat in chats:
                         currentday = chat[3]
                         if currentday != parser.today(groupLink=chat[1]):
                             currentday = parser.today(groupLink=chat[1])
                             send_msg_by_peer_id("Расписание изменилась \n \n" + currentday, chat[0])
-                            db.set_last_lessons_by_peer_id(chat[0],currentday)
-                    time.sleep(1000)
+                            db_inthread.set_last_lessons_by_peer_id(chat[0], currentday)
+                    time.sleep(4)
                 time.sleep(51000)
+
         try:
             # Отправка текстового сообщения
-            #asyncio.run(check_today_lessons_update())
-            threading.Thread(target=check_today_lessons_update()).start()
+            # asyncio.run(check_today_lessons_update())
+            x = threading.Thread(target=check_today_lessons_update)
+            x.start()
             for event in longpoll.listen():  # Постоянное прослушивание сообщений
-
                 if event.type == VkBotEventType.MESSAGE_NEW:  # Проверка на приход сообщения
                     # Логика ответов
                     # Текстовые ответы -----------------------------------------------------------------------------
@@ -105,3 +106,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    print("finish")
