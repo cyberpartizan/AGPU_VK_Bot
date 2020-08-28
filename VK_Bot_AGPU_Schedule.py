@@ -1,4 +1,5 @@
 import datetime
+import os
 import socket
 import threading
 import time
@@ -9,9 +10,9 @@ import urllib3
 import vk_api
 from DataBase import Database
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
-
+#6d3e7800807862b42f09c5b0adeb32c71d8646aef4e70ec1db414dba89d328d2e48e49486f2fdae46333d
 # Импорт API ключа(токена)
-APIKEYSS = "6d3e7800807862b42f09c5b0adeb32c71d8646aef4e70ec1db414dba89d328d2e48e49486f2fdae46333d"
+API_KEY = os.environ("API_KEY")
 print("Бот работает...")
 group_id = '197937466'  # Указываем id сообщества, изменять только здесь!
 oshibka = 0  # обнуление счетчика ошибок
@@ -22,7 +23,7 @@ db = Database('AGPU_Schedule_Bot_DB.db')
 def main():
     global oshibka  # Счетчик ошибок
     try:
-        vk_session = vk_api.VkApi(token=APIKEYSS)  # Авторизация под именем сообщества
+        vk_session = vk_api.VkApi(token=API_KEY)  # Авторизация под именем сообщества
         longpoll = VkBotLongPoll(vk_session, group_id)
         vk = vk_session.get_api()
 
