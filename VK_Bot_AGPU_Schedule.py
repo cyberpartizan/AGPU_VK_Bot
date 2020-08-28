@@ -13,13 +13,14 @@ from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 #6d3e7800807862b42f09c5b0adeb32c71d8646aef4e70ec1db414dba89d328d2e48e49486f2fdae46333d
 # Импорт API ключа(токена)
 API_KEY = os.environ.get("API_KEY")
+#API_KEY = "6d3e7800807862b42f09c5b0adeb32c71d8646aef4e70ec1db414dba89d328d2e48e49486f2fdae46333d"
 print("Бот работает...")
 group_id = '197937466'  # Указываем id сообщества, изменять только здесь!
 oshibka = 0  # обнуление счетчика ошибок
 threads = []
 db = Database('AGPU_Schedule_Bot_DB.db')
-
-
+Start_thread=True
+q=True
 def main():
     global oshibka  # Счетчик ошибок
     try:
@@ -50,8 +51,11 @@ def main():
         try:
             # Отправка текстового сообщения
             # asyncio.run(check_today_lessons_update())
-            x = threading.Thread(target=check_today_lessons_update)
-            x.start()
+
+            if oshibka==0:
+                x = threading.Thread(target=check_today_lessons_update)
+                x.start()
+
             for event in longpoll.listen():  # Постоянное прослушивание сообщений
                 if event.type == VkBotEventType.MESSAGE_NEW:  # Проверка на приход сообщения
                     # Логика ответов
