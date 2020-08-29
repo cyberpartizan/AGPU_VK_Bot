@@ -42,8 +42,8 @@ class Database:
         return send_updates
 
     def get_send_updates_status_one(self, peed_id):
-        cursor.execute("SELECT send_updates FROM Chats WHERE chat_id=?", (peed_id,))
-        result = bool(list(cursor.fetchone())[0])
+        self.cursor.execute("SELECT send_updates FROM Chats WHERE chat_id=?", (peed_id,))
+        result = bool(list(self.cursor.fetchone())[0])
         return result
 
     def set_last_lessons_by_peer_id(self, peer_id, day_lessons):

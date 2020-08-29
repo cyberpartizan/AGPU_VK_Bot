@@ -1,8 +1,7 @@
+import datetime
+
 import requests
 from bs4 import BeautifulSoup
-import datetime
-import time
-import threading
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
@@ -25,15 +24,22 @@ def get_day_lessons(hoursandwith, daysandlessons, weekday):  # Вычислен�
     lessons = []
     while j <= len(hoursandwith) - 1:  # Вычисление пустых клеток и обнаружение двух клеток в одной
         if (hoursandwith[j]['hourWidth'] == '2') and (daysandlessons[weekday]['lessons'][i]['lessonWidth'] == '1'):
-            lessons.append((hoursandwith[j]['hour'] + '\n' + daysandlessons[weekday]['lessons'][i]['lesson'] + '\n' +
-                            daysandlessons[weekday]['lessons'][i + 1]['lesson']).replace('\n\n', '').replace(
-                '\n(ВМ-ИВТ-2-1)', ''))
+            lessons.append(
+                            (hoursandwith[j]['hour']
+                            + '\n'
+                            + daysandlessons[weekday]['lessons'][i]['lesson']
+                            + '\n' + daysandlessons[weekday]['lessons'][i + 1]['lesson'])
+                            .replace('\n\n', '')
+                           )
             i += 1
         else:
             if daysandlessons[weekday]['lessons'][i]['lesson'] != '':
                 lessons.append(
-                    (hoursandwith[j]['hour'] + '\n' + daysandlessons[weekday]['lessons'][i]['lesson']).replace('\n\n','').replace('\n(ВМ-ИВТ-2-1)', '')
-                                )
+                                (hoursandwith[j]['hour']
+                                + '\n'
+                                + daysandlessons[weekday]['lessons'][i]['lesson'])
+                                .replace('\n\n','')
+                               )
         i += 1
         j += 1
     return {'day': daysandlessons[weekday]['day'], 'dayLessons': lessons}
@@ -114,7 +120,7 @@ def bydate(date, groupLink):
     return res
 
 
-#def check_today_schedule_change(group_link):  # Проверка если расписание изминилось на сегодня
+# def check_today_schedule_change(group_link):  # Проверка если расписание изминилось на сегодня
 #    while True:
 #        currentday = today(groupLink=group_link)
 #        while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
@@ -124,15 +130,15 @@ def bydate(date, groupLink):
 #                currentday = today()
 #        time.sleep(51000)
 
-async def check_today_schedule_change(peer_id, group_link):  # Проверка если расписание изминилось на сегодня
-    #currentday = today(groupLink=group_link)
-    while (get_send_updates_status_one(peer_id) and datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
-        if currentday == today(groupLink=group_link):
-            await asyncio.time.sleep(900)
-        else:
-            currentday = today(groupLink=group_link)
-            send_msg_by_peer_id(currentday, peer_id)
-    await asyncio.time.sleep(51000)
+# async def check_today_schedule_change(peer_id, group_link):  # Проверка если расписание изминилось на сегодня
+#    #currentday = today(groupLink=group_link)
+#    while (get_send_updates_status_one(peer_id) and datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
+#        if currentday == today(groupLink=group_link):
+#            await asyncio.time.sleep(900)
+#        else:
+#            currentday = today(groupLink=group_link)
+#            send_msg_by_peer_id(currentday, peer_id)
+#    await asyncio.time.sleep(51000)
 
 def String_day(daydict):
     day = daydict['day'] + '\n\n'
@@ -148,13 +154,13 @@ def String_week(weekdict):
         WeekLessons = WeekLessons + String_day(daydict) + '\n'
     return WeekLessons
 
+
 def check_schedule_exist(group_link, days=0):  # Проверяет существоавания расписания
     schedule_text = today(days=days, groupLink=group_link)
     if schedule_text.split("\n")[3] == "":
         return "Системе не удалось найти учебную неделю в расписании."
     else:
         return schedule_text
-
 
 # day20_4_2020=today(-100)
 # print(String_day(day20_4_2020))

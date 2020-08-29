@@ -1,7 +1,7 @@
 import asyncio
 import threading
 import time
-
+import datetime
 import DataBase as db
 
 
@@ -57,9 +57,7 @@ async def main2():
 
 
 if __name__ == '__main__':
-    loop=asyncio.get_event_loop()
-    loop.run_until_complete(main2())
-    loop.close()
+    print(datetime.datetime.now())
 
 
 
