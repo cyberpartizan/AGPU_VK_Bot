@@ -36,15 +36,18 @@ class Database:
         self.cursor.execute("UPDATE Chats SET group_link = ? WHERE chat_id =?", (group_link, peer_id))
         self.connection.commit()
 
-    def get_send_updates(self):
+    def get_send_updates_all(self):
         self.cursor.execute("SELECT * FROM Chats WHERE send_updates=1")
         send_updates = self.cursor.fetchall()
         return send_updates
 
-    def get_send_updates_status_one(self, peed_id):
-        self.cursor.execute("SELECT send_updates FROM Chats WHERE chat_id=?", (peed_id,))
+    def get_send_updates_one(self, peer_id):
+        self.cursor.execute("SELECT send_updates FROM Chats WHERE chat_id=?", (peer_id,))
         result = bool(list(self.cursor.fetchone())[0])
         return result
+    def set_send_updates(self,peer_id,status):
+        self.cursor.execute("UPDATE Chats SET send_updates = ? WHERE chat_id =?",(status, peer_id))
+        self.connection.commit()
 
     def set_last_lessons_by_peer_id(self, peer_id, day_lessons):
         self.cursor.execute("UPDATE Chats SET last_lessons = ? WHERE chat_id =?", (day_lessons, peer_id))
@@ -55,7 +58,11 @@ class Database:
             self.update_to_chats_t(peer_id, group_name)
         else:
             self.insert_to_chats_t(peer_id, group_name)
-
+    def get_group_name_by_peer_id(self,peer_id):
+        group_link=self.get_group_link_by_peer_id(peer_id)
+        self.cursor.execute("SELECT group_name FROM Groups WHERE group_link=?", (group_link,))
+        result = list(self.cursor.fetchone())[0]
+        return result
 
 #db = Database('AGPU_Schedule_Bot_DB.db')
-#db.update_to_chats_t(68051119, "ВМ-ИВТ-3-1")
+#print(db.get_group_name_by_peer_id(68051119))

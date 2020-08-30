@@ -15,7 +15,7 @@ async def main(loop):
 
 async def func():
     while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
-        chats = db.get_send_updates()
+        chats = db.get_send_updates_all()
         for chat in chats:
             currentday = chat[3]
             if currentday != today(groupLink=chat[1]):
@@ -27,7 +27,7 @@ async def func():
 
 
 async def check_today_schedule_change(peer_id, group_link):  # Проверка если расписание изминилось на сегодня
-    chats = db.get_send_updates()
+    chats = db.get_send_updates_all()
     while get_send_updates_status_one(peer_id):
         currentday = today(groupLink=group_link)
         while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 18):
@@ -57,7 +57,10 @@ async def main2():
 
 
 if __name__ == '__main__':
-    print(datetime.datetime.now())
+    s={"s":1}
+    print(s)
+    print(type(s) is dict)
+
 
 
 

@@ -1,5 +1,4 @@
 import datetime
-
 import requests
 from bs4 import BeautifulSoup
 
@@ -25,21 +24,21 @@ def get_day_lessons(hoursandwith, daysandlessons, weekday):  # Вычислен�
     while j <= len(hoursandwith) - 1:  # Вычисление пустых клеток и обнаружение двух клеток в одной
         if (hoursandwith[j]['hourWidth'] == '2') and (daysandlessons[weekday]['lessons'][i]['lessonWidth'] == '1'):
             lessons.append(
-                            (hoursandwith[j]['hour']
-                            + '\n'
-                            + daysandlessons[weekday]['lessons'][i]['lesson']
-                            + '\n' + daysandlessons[weekday]['lessons'][i + 1]['lesson'])
-                            .replace('\n\n', '')
-                           )
+                (hoursandwith[j]['hour']
+                 + '\n'
+                 + daysandlessons[weekday]['lessons'][i]['lesson']
+                 + '\n' + daysandlessons[weekday]['lessons'][i + 1]['lesson'])
+                    .replace('\n\n', '')
+            )
             i += 1
         else:
             if daysandlessons[weekday]['lessons'][i]['lesson'] != '':
                 lessons.append(
-                                (hoursandwith[j]['hour']
-                                + '\n'
-                                + daysandlessons[weekday]['lessons'][i]['lesson'])
-                                .replace('\n\n','')
-                               )
+                    (hoursandwith[j]['hour']
+                     + '\n'
+                     + daysandlessons[weekday]['lessons'][i]['lesson'])
+                        .replace('\n\n', '')
+                )
         i += 1
         j += 1
     return {'day': daysandlessons[weekday]['day'], 'dayLessons': lessons}
@@ -52,14 +51,37 @@ def get_week_lessons(hoursandwith, daysandlessons):  # Вычисление ра
     return week
 
 
-def get_week_count_and_weekday(day, month, year):  # Вычисление недели в URL и номера дня недели
+def get_week_count_and_weekday(datenumbers):  # Вычисление недели в URL и номера дня недели
     startweek = 2357
+    try:
+        day = datenumbers[0]
+        month = datenumbers[1]
+        year = datenumbers[2]
+    except ValueError:
+        print("Не правельный формат даты")
+
     startday = datetime.date(2019, 9, 2)
     endday = datetime.date(year, month, day)
     plusweek = int((endday - startday).days / 7)
     weekday = endday.weekday() + 1
     weekcount = startweek + plusweek
     return {'weekday': weekday, 'weekcount': weekcount}
+
+
+def check_date_format(date_string):
+    try:
+        if "." in date_string:
+            date_format = "%d.%m.%Y"
+        elif "," in date_string:
+            date_format = "%d,%m,%Y"
+        elif "-" in date_string:
+            date_format = "%d-%m-%Y"
+        elif "/" in date_string:
+            date_format = "%d/%m/%Y"
+        datetime.datetime.strptime(date_string, date_format)
+        return True
+    except ValueError:
+        return False
 
 
 def split_date_to_numbers(date):  # Разделение даты по дням / месяцам / лет
@@ -73,49 +95,58 @@ def split_date_to_numbers(date):  # Разделение даты по дням 
             temp = list(map(int, date.split('.')))
         elif "," in date:
             temp = list(map(int, date.split(',')))
+        elif "/" in date:
+            temp = list(map(int, date.split('/')))
+        elif "-" in date:
+            temp = list(map(int, date.split('-')))
         else:
-            print("Неправельный формат даты")
+            return print("Неправельный формат даты")
     return temp
 
 
 def get_lesson_by_date(date, grouplink):  # Расписание по дате
     hoursandwith = []
     daysandlessons = []
-    datenumbers = split_date_to_numbers(date)
-    weekCount_weekDay = get_week_count_and_weekday(datenumbers[0], datenumbers[1], datenumbers[2])
-    WeekNumber = str(weekCount_weekDay['weekcount'])
-    finalURL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={grouplink}&WeekId={WeekNumber}'
-    html = get_html(finalURL, headers)
-    content = get_content(html)
-    tr = content.findAll('tr')  # Находим все строки таблицы (включая заголовки)
-    for th in tr[0].findAll('th')[1:]:  # Заголовки и их ширина
-        hoursandwith.append({'hour': th.find('span').get_text(),
-                             'hourWidth': th['colspan']
-                             })
+    bb=type(date) == datetime.date
+    b=check_date_format(date)
+    if type(date) == datetime.date or check_date_format(date):
+        datenumbers = split_date_to_numbers(date)
+        weekCount_weekDay = get_week_count_and_weekday(datenumbers)
+        WeekNumber = str(weekCount_weekDay['weekcount'])
+        finalURL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={grouplink}&WeekId={WeekNumber}'
+        html = get_html(finalURL, headers)
+        content = get_content(html)
+        tr = content.findAll('tr')  # Находим все строки таблицы (включая заголовки)
+        for th in tr[0].findAll('th')[1:]:  # Заголовки и их ширина
+            hoursandwith.append({'hour': th.find('span').get_text(),
+                                 'hourWidth': th['colspan']
+                                 })
 
-    for line in tr[1:]:  # Пары и их ширина
-        temp = []
-        for lesson in line.findAll('td'):
-            temp.append({'lesson': lesson.get_text(separator='\n'),
-                         'lessonWidth': lesson['colspan']})
-        daysandlessons.append({'day': line.find('th').get_text(separator='\n'),
-                               'lessons': temp})
+        for line in tr[1:]:  # Пары и их ширина
+            temp = []
+            for lesson in line.findAll('td'):
+                temp.append({'lesson': lesson.get_text(separator='\n'),
+                             'lessonWidth': lesson['colspan']})
+            daysandlessons.append({'day': line.find('th').get_text(separator='\n'),
+                                   'lessons': temp})
 
-    day = (get_day_lessons(hoursandwith, daysandlessons, weekCount_weekDay['weekday']))
+        day = (get_day_lessons(hoursandwith, daysandlessons, weekCount_weekDay['weekday']))
+    else:
+        return "Ошибка при указании даты"
     return day
 
 
-def today(groupLink, days=0):
+def today(group_link, days=0):
     global URL
-    URL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={groupLink}&WeekId='
+    URL = f'https://it-institut.ru/Raspisanie/SearchedRaspisanie?OwnerId=118&SearchId={group_link}&WeekId='
     date = datetime.datetime.now().date() + datetime.timedelta(days=days)
-    res = String_day(get_lesson_by_date(date=date, grouplink=groupLink))
+    res = String_day(get_lesson_by_date(date=date, grouplink=group_link))
     return res
 
 
-def bydate(date, groupLink):
+def bydate(date, group_link):
     global URL
-    day = get_lesson_by_date(date=date, grouplink=groupLink)
+    day = get_lesson_by_date(date=date, grouplink=group_link)
     res = String_day(day)
     return res
 
@@ -141,11 +172,14 @@ def bydate(date, groupLink):
 #    await asyncio.time.sleep(51000)
 
 def String_day(daydict):
-    day = daydict['day'] + '\n\n'
-    lessons = ''
-    for lesson in daydict['dayLessons']:
-        lessons = lessons + lesson + '\n\n'
-    return day + lessons
+    if type(daydict) is dict:
+        day = daydict['day'] + '\n\n'
+        lessons = ''
+        for lesson in daydict['dayLessons']:
+            lessons = lessons + lesson + '\n\n'
+        return day + lessons
+    else:
+        return daydict
 
 
 def String_week(weekdict):
@@ -156,7 +190,7 @@ def String_week(weekdict):
 
 
 def check_schedule_exist(group_link, days=0):  # Проверяет существоавания расписания
-    schedule_text = today(days=days, groupLink=group_link)
+    schedule_text = today(days=days, group_link=group_link)
     if schedule_text.split("\n")[3] == "":
         return "Системе не удалось найти учебную неделю в расписании."
     else:
@@ -167,3 +201,4 @@ def check_schedule_exist(group_link, days=0):  # Проверяет сущест
 # start_scan()
 # while True:
 # time.sleep(5)
+# print(check_date_format("9;3/2020"))
