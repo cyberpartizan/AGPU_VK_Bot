@@ -66,7 +66,6 @@ def main():
                     if db.chat_id_is_in_DB(peer_id):
                         group_link = db.get_group_link_by_peer_id(peer_id)
                         if received_text == "/сегодня" or received_text == "/с":
-                            answer=parser.check_schedule_exist(days=0, group_link=group_link)
                             send_msg(parser.check_schedule_exist(days=0, group_link=group_link))
                         elif received_text == "/время":
                             send_msg(datetime.datetime.now())

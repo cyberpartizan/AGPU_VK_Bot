@@ -107,8 +107,6 @@ def split_date_to_numbers(date):  # Разделение даты по дням 
 def get_lesson_by_date(date, grouplink):  # Расписание по дате
     hoursandwith = []
     daysandlessons = []
-    bb=type(date) == datetime.date
-    b=check_date_format(date)
     if type(date) == datetime.date or check_date_format(date):
         datenumbers = split_date_to_numbers(date)
         weekCount_weekDay = get_week_count_and_weekday(datenumbers)
