@@ -90,11 +90,11 @@ def main():
                             #     send_msg("Системе не удалось найти учебную неделю в расписании.")
                             # else:
                             #     send_msg(answer)
-                        elif received_text == "/подписка":
+                        elif received_text == "/подписаться":
                             db.set_send_updates(peer_id=peer_id, status=True)
                             group_name = db.get_group_name_by_peer_id(peer_id)
                             send_msg("Вы подписались на автоматическую рассылку расписания группы:" + group_name)
-                        elif received_text == "/отписка":
+                        elif received_text == "/отписаться":
                             db.set_send_updates(peer_id=peer_id, status=False)
                             group_name = db.get_group_name_by_peer_id(peer_id)
                             send_msg("Вы отписались от автоматической рассылки расписания группы:" + group_name)

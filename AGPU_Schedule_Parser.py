@@ -53,15 +53,14 @@ def get_week_lessons(hoursandwith, daysandlessons):  # Вычисление ра
 
 
 def get_week_count_and_weekday(datenumbers):  # Вычисление недели в URL и номера дня недели
-    startweek = 2357
+    startweek = 2613
     try:
         day = datenumbers[0]
         month = datenumbers[1]
         year = datenumbers[2]
     except ValueError:
         print("Не правельный формат даты")
-
-    startday = datetime.date(2019, 9, 2)
+    startday = datetime.date(2020, 8, 31)
     endday = datetime.date(year, month, day)
     plusweek = int((endday - startday).days / 7)
     weekday = endday.weekday() + 1
