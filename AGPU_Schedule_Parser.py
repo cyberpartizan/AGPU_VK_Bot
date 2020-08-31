@@ -1,4 +1,5 @@
 import datetime
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -78,10 +79,13 @@ def check_date_format(date_string):
             date_format = "%d-%m-%Y"
         elif "/" in date_string:
             date_format = "%d/%m/%Y"
+        else:
+            return False
         datetime.datetime.strptime(date_string, date_format)
-        return True
     except ValueError:
         return False
+    else:
+        return True
 
 
 def split_date_to_numbers(date):  # Разделение даты по дням / месяцам / лет
@@ -187,8 +191,13 @@ def String_week(weekdict):
     return WeekLessons
 
 
-def check_schedule_exist(group_link, days=0):  # Проверяет существоавания расписания
-    schedule_text = today(days=days, group_link=group_link)
+def check_schedule_exist(group_link, date=None, days=0):  # Проверяет существоавания расписания
+    if date != None:
+        schedule_text = bydate(date=date, group_link=group_link)
+        if "\n" not in schedule_text:
+            return schedule_text
+    else:
+        schedule_text = today(days=days, group_link=group_link)
     if schedule_text.split("\n")[3] == "":
         return "Системе не удалось найти учебную неделю в расписании."
     else:

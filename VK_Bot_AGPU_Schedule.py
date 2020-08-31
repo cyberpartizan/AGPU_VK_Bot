@@ -2,6 +2,7 @@ import datetime
 import socket
 import threading
 import time
+
 import AGPU_Schedule_Parser as parser
 import requests
 import urllib3
@@ -9,13 +10,12 @@ import vk_api
 from DataBase import Database
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 
-# 6d3e7800807862b42f09c5b0adeb32c71d8646aef4e70ec1db414dba89d328d2e48e49486f2fdae46333d
 # Импорт API ключа(токена)
 # API_KEY = os.environ.get("API_KEY")
 API_KEY = "6d3e7800807862b42f09c5b0adeb32c71d8646aef4e70ec1db414dba89d328d2e48e49486f2fdae46333d"
 print("Бот работает...")
 group_id = '197937466'  # Указываем id сообщества, изменять только здесь!
-oshibka = 0  # обнуление счетчика ошибок
+error = 0  # обнуление счетчика ошибок
 threads = []
 db = Database('AGPU_Schedule_Bot_DB.db')
 Start_thread = True
@@ -23,7 +23,7 @@ q = True
 
 
 def main():
-    global oshibka  # Счетчик ошибок
+    global error  # Счетчик ошибок
     try:
         vk_session = vk_api.VkApi(token=API_KEY)  # Авторизация под именем сообщества
         longpoll = VkBotLongPoll(vk_session, group_id)
@@ -36,16 +36,16 @@ def main():
             vk.messages.send(peer_id=peer_id, random_id=0, message=ms_g)
 
         def check_today_lessons_update():  # Проверка на обновления расписания за день
-            db_inthread = Database('AGPU_Schedule_Bot_DB.db')
+            db_in_thread = Database('AGPU_Schedule_Bot_DB.db')
             while True:
                 while (datetime.datetime.now().hour >= 5) and (datetime.datetime.now().hour < 13):
-                    chats = db_inthread.get_send_updates_all()
+                    chats = db_in_thread.get_send_updates_all()
                     for chat in chats:
                         currentday = chat[3]
                         if currentday != parser.today(group_link=chat[1]):
                             currentday = parser.today(group_link=chat[1])
                             send_msg_by_peer_id("Расписание изменилась \n \n" + currentday, chat[0])
-                            db_inthread.set_last_lessons_by_peer_id(chat[0], currentday)
+                            db_in_thread.set_last_lessons_by_peer_id(chat[0], currentday)
                     time.sleep(1000)
                 time.sleep(51000)
 
@@ -53,7 +53,7 @@ def main():
             # Отправка текстового сообщения
             # asyncio.run(check_today_lessons_update())
 
-            if oshibka == 0:
+            if error == 0:
                 x = threading.Thread(target=check_today_lessons_update)
                 x.start()
 
@@ -78,20 +78,22 @@ def main():
                         elif received_text == "/позавчера" or received_text == "/пв":
                             send_msg(parser.check_schedule_exist(days=-2, group_link=group_link))
                         elif "/дата" in received_text or "/д" in received_text:
-                            chuncks = received_text.split()
-                            date = chuncks[1]
-                            answer = parser.bydate(date=date, group_link=group_link)
+                            chunks = received_text.split()
+                            date = chunks[1]
+                            answer = parser.check_schedule_exist(date=date, group_link=group_link)
+                            send_msg(answer)
+                            # answer = parser.bydate(date=date, group_link=group_link)
 
-                            if "\n" not in answer:
-                                send_msg(answer)
-                            elif answer.split("\n")[3] == "":
-                                send_msg("Системе не удалось найти учебную неделю в расписании.")
-                            else:
-                                send_msg(answer)
+                            # if "\n" not in answer:
+                            #     send_msg(answer)
+                            # elif answer.split("\n")[3] == "":
+                            #     send_msg("Системе не удалось найти учебную неделю в расписании.")
+                            # else:
+                            #     send_msg(answer)
                         elif received_text == "/подписка":
                             db.set_send_updates(peer_id=peer_id, status=True)
-                            group_name=db.get_group_name_by_peer_id(peer_id)
-                            send_msg("Вы подписались на автоматическую рассылку расписания группы:"+ group_name)
+                            group_name = db.get_group_name_by_peer_id(peer_id)
+                            send_msg("Вы подписались на автоматическую рассылку расписания группы:" + group_name)
                         elif received_text == "/отписка":
                             db.set_send_updates(peer_id=peer_id, status=False)
                             group_name = db.get_group_name_by_peer_id(peer_id)
@@ -101,33 +103,33 @@ def main():
                                  + "+ название группы заглавными буквами, например: "
                                  + "/г ВМ-ИВТ-3-1 или /группа ZММ-МАТИ-2-1")
                     if "/группа" in received_text or "/г" in received_text:
-                        chuncks = received_text.split()
-                        group_name = chuncks[1].upper()
+                        chunks = received_text.split()
+                        group_name = chunks[1].upper()
                         if db.group_name_is_in_DB(group_name):
                             db.review_ChatsT(peer_id=peer_id, group_name=group_name)
                             db.set_send_updates(peer_id=peer_id, status=True)
                             send_msg("Ваш чат теперь привязан к группе "
                                      + group_name
-                                     +". Чтобы отписатся от рассылки используйте команду /отписка."
-                                     +"Для повторной подписки, команду /подписка.")
+                                     + ". Чтобы отписатся от рассылки используйте команду /отписка."
+                                     + "Для повторной подписки, команду /подписка.")
                         else:
                             send_msg("Неправельно введено название группы")
         except (requests.exceptions.ConnectionError, urllib3.exceptions.MaxRetryError,
                 urllib3.exceptions.NewConnectionError, socket.gaierror):
-            oshibka = oshibka + 1
+            error = error + 1
             print("Произошла ошибка" + ' № ' + str(
-                oshibka) + " - ошибка подключения к вк!!! Бот будет перезапущен!!!(except 1)")
+                error) + " - ошибка подключения к вк!!! Бот будет перезапущен!!!(except 1)")
             time.sleep(5.0)
             main()
-        finally:
-            oshibka = oshibka + 1
-            print("Произошла ошибка" + ' № ' + str(oshibka) + "!!! Бот будет перезапущен!!!(finally)")
-            main()
+        # finally:
+        #     error = error + 1
+        #     print("Произошла ошибка" + ' № ' + str(error) + "!!! Бот будет перезапущен!!!(finally)")
+        #     main()
     except (requests.exceptions.ConnectionError, urllib3.exceptions.MaxRetryError,
             urllib3.exceptions.NewConnectionError, socket.gaierror):
-        oshibka = oshibka + 1
+        error = error + 1
         print(
-            "Произошла ошибка" + '№' + str(oshibka) + " - ошибка подключения к вк!!! Бот будет перезапущен!!!except 2")
+            "Произошла ошибка" + '№' + str(error) + " - ошибка подключения к вк!!! Бот будет перезапущен!!!except 2")
         time.sleep(5.0)
         main()
 
