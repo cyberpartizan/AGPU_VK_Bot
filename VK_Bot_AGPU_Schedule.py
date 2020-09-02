@@ -38,7 +38,7 @@ def main():
         def check_today_lessons_update():  # Проверка на обновления расписания за день
             db_in_thread = Database('AGPU_Schedule_Bot_DB.db')
             while True:
-                while (datetime.datetime.now().hour >= 5) and (datetime.datetime.now().hour < 13):
+                while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 14):
                     chats = db_in_thread.get_send_updates_all()
                     for chat in chats:
                         currentday = chat[3]
