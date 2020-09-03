@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime
+from datetime import timedelta
 import socket
 import threading
 import time
@@ -38,7 +39,7 @@ def main():
         def check_today_lessons_update():  # Проверка на обновления расписания за день
             db_in_thread = Database('AGPU_Schedule_Bot_DB.db')
             while True:
-                while (datetime.datetime.now().hour >= 8) and (datetime.datetime.now().hour < 14):
+                while ((datetime.now().hour >= 7) and (datetime.now().minute >= 30)) and (datetime.now().hour < 14):
                     chats = db_in_thread.get_send_updates_all()
                     for chat in chats:
                         currentday = chat[3]
@@ -47,7 +48,12 @@ def main():
                             send_msg_by_peer_id("Расписание изменилась \n \n" + currentday, chat[0])
                             db_in_thread.set_last_lessons_by_peer_id(chat[0], currentday)
                     time.sleep(1000)
-                time.sleep(51000)
+                time_const= "7:30:00"
+                FMT = "%H:%M:%S"
+                delta_morning=datetime.strptime(time_const,FMT)- datetime.now()
+                if delta_morning.days<0:
+                    delta_morning = timedelta(days=0,seconds=delta_morning.seconds)
+                time.sleep(int(delta_morning.total_seconds())+60)
 
         try:
             # Отправка текстового сообщения
@@ -68,7 +74,7 @@ def main():
                         if received_text == "/сегодня" or received_text == "/с":
                             send_msg(parser.check_schedule_exist(days=0, group_link=group_link))
                         elif received_text == "/время":
-                            send_msg(datetime.datetime.now())
+                            send_msg(datetime.now())
                         elif received_text == "/завтра" or received_text == "/з":
                             send_msg(parser.check_schedule_exist(days=1, group_link=group_link))
                         elif received_text == "/послезавтра" or received_text == "/пз":
