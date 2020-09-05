@@ -8,8 +8,12 @@ headers = {
 
 
 def get_html(url, headers, params=None):  # HTML страница
-    r = requests.get(url, headers=headers, params=params)
-    return r.text
+    try:
+        r = requests.get(url, headers=headers, params=params)
+        return r.text
+    except requests.exceptions.Timeout:
+        print("Timeout occurred")
+
 
 
 def get_content(html):  # Конвертация в BeautifulSoup
